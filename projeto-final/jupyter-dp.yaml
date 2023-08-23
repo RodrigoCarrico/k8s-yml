@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter-dp
+  namespace: jupyter # nome do namespace criado no outro arquivo
+  labels:
+    app: jupyter-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: jupyter-pods
+  template:
+    metadata:
+      labels:
+        app: jupyter-pods # aqui tem que ser exatamente a label do match label na linha 12
+    spec:
+      containers:
+      - name: jupyter-container
+        image: jupyter/minimal-notebook:2022-12-05
+        ports:
+        - containerPort: 8888
+        command: ["start-notebook.sh"]
+        args: ["--NotebookApp.token=''"]
+
+
+
+# comando para limpar totalmente o minikude obs: somente em ambiente local recomenda-se executar este comando
+# $ minikube delete && minikube start
+
+
+# antes de rodar o deployment, rodar o namespace que ele esta referenciando
+# $ kubectl apply -f jupyter-ns.yaml
+# $ kubectl apply -f jupyter-dp.yaml
+
+
+# comando para ficar observando os pods dentro do namespace
+# $ kubectl get pods -n jupyter -w
+
+
+
+#comando para saber qual o namespace q esta sendo acessado e configurado como default
+# $ kubectl config view | grep namespace
+
+# comando para setar um namespace padrao no caso estamos deixando o jupyter como padrão
+# $ kubectl config set-context --current --namespace=jupyter
+
+
+#comando para verificar os logs dentro do pod criado
+# $ kubectl logs [nome do pod respectivo]
+
+
+# comando imperativo para fazer um port-fowardq é o mapeamento da porta de acesso externo ao pod
+# porta local é 8080 e a porta do container é 8888
+# $ kubectl port-foward [nome do pod] 8080:8888 - n jupyter
+
+
+# comando com dry-run que é uma simulação para criação de algum recurso no k8s
+# neste caso iremos simular um serviço de exposição de porta
+# $ kubectl expose deployment [nome do deployment] -n jupter --type=NodePort --name=[nome do serviço a ser criado] --dry-run=client
+
+# comando sem o dry-run , agora sim ele ira criar o serviço
+# $ kubectl expose deployment [nome do deployment] -n jupter --type=NodePort --name=[nome do serviço a ser criado] 
+
+
+# comando para consultar o serviço, no caso ler o arquivo q foi criado em formato yaml ou Json
+# $ kube ctl get svc [nome do serviço] -o yaml
+# $ kube ctl get svc [nome do serviço] -o json
+
+# comando para gerar a url do servico com o minikube. "-n" indica o namespace
+# $ minikube service [nome do servico] -n jupyter -url
+
+
+# comando para mostar o ip q esta rodando os nodes
+# $ kubectl get nodes -o yaml | grep address
+
+# comando para mostrar dados como ip do cluster e a porta q esta rodando o pod
+# $ kubectl get svc -o wide
+
+# comando para pegar exatamente a porta do serviço
+# $ kubectl get svc [nome serviço] -o yaml | grep nodePort
+
+
+# comando setando o editor no linux
+# $ KUBE_EDITOR="nano" kubectl edit service [nome do serviço]
+
+# comando para pegar o arquivo yaml dentro do k8s e salvar em nosso diretorio ou controlador de versões
+# $ kubectl get svc [nome do servico] -o yaml > [nome so arquivo desejado].yaml
+
+
+#comando para trocar a imagem do container do jupyter de forma imperativa
+# $ kubectl set image deployment/jupyter-dp jupyter-container=jupyter/minimal-notebook:python-3-10
+
+# comando para verificar se houve algum problema com o roll out
+# $ kubectl rollout status deployment/jupyter-dp
+
+# comando imperativo para dar um rollback na aplicação caso de algum crash
+# $ kubectl rollout undo deployment/jupyter-dp
+
+# comandos de verificação
+# $ kubectl get deployments
+# $ kubectl get replicasets
+# $ kubectl get endpoints
+# $ kubectl get endpointslices
+
+
+# comando para remover delete deployments do projeto
+# $ kubectl delete jupyter-dp
+# $ kubectl delete svc jupyter-svc
+
+# comando para voltar o namespace default
+# $ kubectl config set-context --current --namespace=default
+

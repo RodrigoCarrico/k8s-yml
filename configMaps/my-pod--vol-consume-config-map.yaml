@@ -1,0 +1,30 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: pod-cm-vol
+spec: # epecificações do pod
+  containers:
+  - name: my-container
+    image: nginx
+    envForm:
+    - configMapRef:
+        name: my-cm
+    volumeMounts:
+    - name: my-vol
+      mountPath: "/etc/my-vol" # local dentro do container onde sera colocado o arquivo com as informações com as variveis de ambiente
+      readOnly: true
+
+  volumes:
+  - name: my-vol
+    configMap:
+      name: my-cm
+
+# neste exemplo o pod é criado e é configurado para 
+# pegar as informações de um outro .yaml com as configurações do configmap em nosso exemplo uutilizamos o arquivo my-cm.yaml
+# neste exemplo rodamos primeiro este arquivo my-pod-vol-consume-config-map.yaml e o pod ficou experando a execução do my-cm.yaml
+# sequencia de comando executados
+# $ kubctl apply -f  my-pod-vol-consume-config-map.yaml
+# $ kubctl apply -f  my-cm.yaml
+
+# e assim q alterado o my-cm.yaml ele atualiza os pods no local onde é especificado no volume mas não atualiza as variaveis de ambiente utilizadas pelo sistema
+# que dependem da reinicialização do container para serem atualizadas

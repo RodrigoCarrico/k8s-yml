@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: my-daemonset
+  labels:
+    app: frontend
+
+spec:
+  template:
+    metadata:
+      name: pod-web-server
+      labels:
+        apps: my-app
+        tier: frontend
+    spec:
+      containers:
+        - name: my-container-nginx
+          image: nginx
+      nodeName: minikube
+
+  selector:
+    matchLabels:
+      apps: my-app
+
+# usando nodeName: minikube nessa abordagem ele ira criar um pode dentro do node chamado minikube
+# caso venha a ser mudado o nodeName ele ira matar o pod antigo e ira direcionar para o node informado
+

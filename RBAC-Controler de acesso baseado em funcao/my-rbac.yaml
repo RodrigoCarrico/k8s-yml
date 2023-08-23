@@ -1,0 +1,93 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: auditor-role
+rules:
+- apiGroups: [""]
+  resources: ["pods","services"]
+  verbs: ["get","list","watch"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: default
+  name: auditor-rb
+subjects:
+- kind: User # pode ser um group ou service que representa serviços não humanos
+  name: auditor # nome do usuario criado no contexto
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: auditor-role # nome da regra criada na linha 5
+  apiGroup: rbac.authorization.k8s.io
+
+
+
+
+# comando para gerar uma chave de criptografia privada com openssl
+# $ openssl genrsa -out nomechave.key 2048
+# Comando para geracao do csr (client sign request) no caso tem informações sobre o cliente como dominio, a organização q ele pertence etc.
+# $ openssl req -new -key nomechave.key -out nomechave.csr -subj "/CN=nomechave/O=NomeCompany"
+
+#comando para verificar se possui as chaves de .crt e . key na pasta do minikube
+# $ ls ~/.minikube/
+
+# comando para gerar o certificado com o minikube representado por c.cert e ca.key
+# $ openssl x509 -req -in nomechave.crs -CA ~/.minikube/ca.crt -CAkey ~/minikube/ca.key -out nomechave.crt -days 365
+
+# comando para setar a chave de seguança para o ususario ter acesso ao k8s
+# $ kubectl config set-credentials [nome do usuario] --client-certificate=nomechave.crt --client.key=nomechave.key
+
+#  Comando para criar um contexto para o usuario q foi configurado [nome usuario context]=auditor-context
+# $ kubectl config set-context [nome usuario context] --cluster=minikube --user=auditor
+
+# comando para verificar os contextos configurados
+# $ kubectl config view
+
+# comando para verificar qual o contexto atual
+# $ kubectl config current-context
+
+# comando para mudar o contexto
+# $ kubectl config use-context auditor-context
+
+
+# comando para verificar se o contexto setado pode executar qualquer verbo dentro do recurso
+# $ kubectl auth can-i '*' '*' --all-namespaces
+# verificando dentro do namespace
+# $ kubectl auth can-i '*' '*' -n=default
+
+# comando para verificar se o contexto setado pode fazer o get dos pods
+# $ kubectl auth can-i get pods
+
+# comando para verificar se o contexto setado pode fazer o list dos pods
+# $ kubectl auth can-i list pods
+
+# comando para verificar se o contexto setado pode fazer o watch dos pods
+# $ kubectl auth can-i watch pods
+
+# comando para mostrar se existe alguma role criada
+# $ kubectl get roles
+
+# comando para mostrar se existe alguma roleBinding criada
+# $ kubectl get rolebinding
+
+# comando para listar describe da role criada
+# $ kubectl describe role [nome da role que encontra-se dentro do arquivo.yaml]
+
+# comando para deletar as regras criadas pelo arquivo yaml
+# $ kubectl delete -f [nome do arquivo].yaml
+
+# comando para remover as configurações do contexto criado
+# $ kubectl config delete-context [nome do contexto]
+
+# comando para remover a configuração do usuario
+# $ kubectl config unset users.[nome do usuario]
+
+# quando for limpar o usaurio não esquecer de deletar os arquivos dos certificados geerados
+
+#-------------------------------------------------------------
+# comando imperativo para criar pods com imagem nginx
+# $ kubectl run --image nginx [nome do pod]

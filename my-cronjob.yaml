@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: my-cj
+spec: # epecificação do cronJob
+  #suspend: true # pausa a execucao do cronjob
+  failedJobsHistoryLimit: 5 #configuração para exibir numero máximo historicos com falhas
+  successfulJobsHistoryLimit: 10 #configuração para exibir numero máximo historicos success
+  schedule: "* * * * *"
+  jobTemplate: 
+    spec: # especificação do job
+      parallelism: 5 # ira rodar 5 pods simultaneos
+      completions: 10 # ira criar 10 pods
+      completionMode: "Indexed"
+      template:
+        spec: # especificação do pod
+          containers:
+          - name: my-container-busybox
+            image: busybox
+            command:
+            - "bin/sh"
+            - "-c"
+            - "for i in 1 2; do echo Lucky number $i = $((1 + RANDOM % 70)); done"
+          restartPolicy: Never
+
+
+#comando para mostrar os cronjobs
+# $ kubectl get cj
+
+# comando para verificar os eventos e descrição do cronjob
+# $ kubectl describe cronjon [nome cronjob]
+
+# comando para mostrar numeros de historicos com falhas e sucesso
+# $ kubectl describe cronjon [nome cronjob] | grep History
+
+#comando para fazer alteração nos recursos enquanto estão rodando como no exemplo ira suspender o cron job (-p é o caminho)
+# kubectl patch cronjob [nome job] -p '{"spec":{"suspend":true}}'
+# kubectl patch cronjob [nome job] -p '{"spec":{"suspend":false}}' # cronjob ira continuar as execucoes
+
+# job tem conceito de indepotencia
+# A timezone do cronjob são baseadas no kube controller manager
+# CRON-TZ or TZ não é recomendado no cluster de produção

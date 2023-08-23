@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: my-job
+spec:
+  completions: 10 # quantidade de jobs q ira ser criada, no caso 10 é executado um  quando completado executa o proximo até fechar 10
+  completionMode: "Indexed" # adiciona uma sequencia no nome do job
+  parallelism: 5 # permite a execução de 5 pods simultâneos
+  activeDeadlineSeconds: 15 #coloca um tepo limite de execucao idndependente dos numeros de jobs. Os podes que não são completos serão eliminado do kubernetes
+  template:
+    metadata:
+      name: my-job-pod
+    spec: #especificações do pod
+      containers:
+      - name: my-container-busybox
+        image: busybox
+        command:
+        - "bin/sh"
+        - "-c"
+        - "for i in 1 2; do echo Lucky number $i = $((1 + RANDOM % 70)); done"
+      restartPolicy: Never
+
+
+
+
+#restartPolicy não esta ligado ao job e sim ao pod
+
+#quando deletamos o Job todos os pods relacionado a ele são excluídos
+#comando para verificar os jobs, podemos analisar os eventos do jobs $ kubectl describe jobs [nome do job]
+
+#comando para verificar como o job terminou $ kubectl get job [nome do job] --output yaml | grep type
+#comando para mostrar a razão que o job terminou $ kubectl get job [nome do job] --output yaml | grep reason

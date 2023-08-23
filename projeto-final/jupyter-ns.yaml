@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jupyter # nome do namespace
+  annotations: # são metadatas so para identificar a aplicação
+    desc: "Namespace for Jupyter Notebook Application"
+    proj: "Final Project K8s Course"
+    owner: "Arnaldo Sousa"
+    phone: 123-456-789

@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: my-endpoints-service # obs precisa ter o mesmo nome do serviço que ira utiliza-lo como na linha 18
+subsets:
+  - addresses:
+      - ip: 77.68.88.76 # IIS dns externo acessado dentro do kubernetes https://public-dns.info/nameserver/gb.html
+#      - ip: 10.244.0.9 # Apache
+#      - ip: 10.244.0.10 # Nginx
+    ports:
+      - port: 80 # no caso o Apache e o Nginx roda na porta 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-endpoints-service
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+
+# comando para listar os endpoints criados
+#  $ kubectl get endpoints
+
+# comando para criar um pod para testar os end-points criados
+# $ kubectl run -it --image debian [nome do container ou pod]
+# instalar pacotes para instalar os pacotes de consulta de ip dentro no debian criado
+# $ apt update && apt install dnsutils curl -y 
+# $ nslookup [nome do servico]
+# comando para acessar o serviço lista no nslookup
+# $ curl [nome do servico] 
+
+
+
+  # site com lista de endereços publicos como um DNS este site é indicado na linha 7 
+  # https://public-dns.info/nameserver/gb.html

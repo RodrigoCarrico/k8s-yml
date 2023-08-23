@@ -1,0 +1,47 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: my-cm
+  namespace: default
+data: #onde são configuradas as definições de chave e valor
+  #Connection database config
+  database: mysql
+  database_uri: mysql://localhost:3306
+
+  #User interface
+  font.title: Arial Bold
+  background-color: red
+  theme.1: clean
+  theme.2: dark
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: pod-cm-env
+spec:
+  containers:
+  - name: my-container
+    image: nginx
+    envFrom:
+    - configMapRef:
+        name: my-cm  # nome do configMap especificado na configuração acima
+
+
+# litar configmap/cm 
+# $ kubectl get cm
+
+# mostrar definições do cm
+# $ kubectl describe cm [nome do cm]
+
+# comando para entrar dentro do pod criado para realizar alguns testes por exmplo
+# $ kubectl exec -it [nome do pod] -- bash
+# comando $ env # mostra as vairaveins de ambiente
+
+# comando para exibir detalhes do pod com a descricao Warning
+# $ kubectl get events | grep Warning
+
+# quando o configmap sofre alguma alteração de configuração os containers precisam ser reiniciados para que surtam as mudanças
+
+#comando para deletar o configmap
+# kubectl delete -f [nome arquivo].yaml
+ 

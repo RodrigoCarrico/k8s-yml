@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: Service  # tambem conhecido como headless service pois é o servico que representa o statefullset
+metadata:
+  name: svc-sts
+spec:
+  ports:
+  - port: 80
+  clusterIP: None # transforma o service em Heardless service que é o gereciamento de ip pelo nome como um DNS
+  selector:
+    app: nginx-app-pods # nesta linha esta selecionando os pods q ainda irão ser criados
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: my-sts
+spec: #especificacao do statefulset
+  selector:
+    matchLabels:
+      app: nginx-app-pods 
+  serviceName: "svc-sts" #Associação do servico para a parte de redes
+  replicas: 3 # no caso aqui ira ter 3 replicas e ira ter 3 volumes associado comforme especificação na linha 33
+  template:
+    metadata:
+      labels:
+        app: nginx-app-pods
+    spec:
+      containers:
+      - name: my-container
+        image: nginx:1.23.1
+        volumeMounts: #volume montado pelo statefulset para o pod
+        - name: my-pv
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates: # da onde sera criado o volume da pasta html do nginx para cada um dos pods criado / neste item temos a criação do volume e a associação do volume ao pod dinamicamente
+  - metadata:
+      name: my-pv # nome igual ao da linha 31
+    spec:
+      accessModes: ["ReadWriteOnce"] # forma de acesso de leitura e escrita
+      resources:
+        requests:
+          storage: 1Gi # volume possui 1 Gibabytes
+  persistentVolumeReclaimPolicy: Retain # default é Delete 
+
+
+# stetefulsets [mantém o estado] são feitos para não perder as informações (dos pods sempre irão manter o volume dos pods associando volumesClaim) indicando o nome que ele ira subir novamente
+# possui indentificadres de rede único, quando deletamos um statefulset os pods são deletados, mas os volumes inda se mantém
+# referente a atualização ele utiliza default rollingup e a ordem de atualização é sempre do ultimo pod criado para o primeiro
+
+# comando para exibir o watch a a cada 1 segundo
+# $ watch -n 1 kubetcl get pods
+
+# -----------comando aleatório
+# comanddo para criar um pod debian
+# $ kubectl run -it --image debian nome-do-container
+# apos o comando ele ira entrar no shell, precisaremos instalar o curl e o dnsutils para poder acessar a rede
+# $ apt update && apt install curl dnsutils -y
+
+# comando para pesquisar as redes pelo o nome do serviço no kubernets
+# $ nslookup svc-sts
+
+
+# comando para acessar o pod já criado e rodando
+# $ kubectl -it exec [nome do pod] -- bash
+# comando para reescrever o index.html q esta dentro do pod criado para o nginx
+# $ echo "Hello from: $HOSTNAME" > /usr/share/nginx/html/index.html
+
+
+# comando para listar o persistent Volumes obs: "Reclaim police" é a politica de eliminação do volume do pod, "Satus"=Bound quer dizer q os volumes estão vinculados ao pod
+# "storageclass" é onde serão criados os volumes ex: standard é no proprio k8s de exemplo, mas pode ser informado caso depende de um armazenamento de num AWS, Azure, GCP
+# $ kubectl get pv
+# comando para listar as persistent Volumes Claims
+# $ kubectl get pvc
+
+# caminho onde o minikube armazena os dados de volume , no caso o curso usa o thunar como gerenciador de pastas
+# $ sudo thunar /var/lib/volumes/minikube/_data/hostpath-provisioner/default/
+
+# comando para deletar o statefulset 
+# $ kubectl delete [nome do statefulset]
+
+# comando para delete um pvc e ao mesmo tempo ele deleta um pv
+# $ kubectl delete pvc [nome do persistent volume claim]
+
+
+# sequencia para deletar , primeiro pod, depois pvc, por ultimo pv
+# mas caso queira deletar tudo egue o comando obs: perigp não use em produção
+# $ kubectl delete pvc --all
+
+
+# para deletar o volume usar o seguinte comando
+# $ kubectl delete pv [nome do persistent volume]
+
+
+# Termination of Pods è indicado que coloquemos a spec.replicas: 0 para depois eliminarmos o statefulset

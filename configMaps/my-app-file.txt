@@ -1,0 +1,14 @@
+  database: mysql
+  database_uri: mysql://localhost:3306
+  font.title: Arial Bold
+  background-color: red
+  theme.1: clean
+  theme.2: dark
+
+
+# comando imperativo para criar um configmap utilizando este aqruivo my-app.file.txt com seus parametros
+# exemplo
+# $ kubectl create cm [nome do arquivo] \
+# --from-file=my-app-file.txt \
+# --from-literal=my-description=testing
+
